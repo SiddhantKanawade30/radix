@@ -1,6 +1,6 @@
 # Radix — Non-Custodial Multi-Chain HD Wallet
 
-Radix (referring to a "vault" or foundational root) is a secure, non-custodial Hierarchical Deterministic (HD) cryptocurrency wallet application. It enables users to generate new 12-word recovery phrases or import existing ones to derive production-ready Solana and Ethereum wallets.
+Radix (referring to a "root" in latin) is a secure, Hierarchical Deterministic (HD) cryptocurrency wallet application. It enables users to generate new 12-word recovery phrases or import existing ones to derive production-ready Solana and Ethereum wallets.
 
 ---
 

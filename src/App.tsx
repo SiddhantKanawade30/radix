@@ -20,6 +20,7 @@ function App() {
   const [solanaAccounts, setSolanaAccounts] = useState<WalletAccount[]>([]);
   const [ethereumAccounts, setEthereumAccounts] = useState<WalletAccount[]>([]);
   const [showMnemonicModal, setShowMnemonicModal] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
 
   // Generate or Import UI action
   const handleGenerateOrImport = () => {
@@ -86,45 +87,52 @@ function App() {
     toast('Session cleared');
   };
 
-
-
   const activeAccountsList =
     selectedChain === 'solana' ? solanaAccounts : ethereumAccounts;
 
   const totalAccountsCount = solanaAccounts.length + ethereumAccounts.length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#080808] text-zinc-100 font-sans selection:bg-zinc-200 selection:text-black">
-      
+    <div
+      className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
+        isDarkMode
+          ? 'bg-[#080808] text-zinc-100 selection:bg-zinc-200 selection:text-black'
+          : 'bg-[#f8f9fa] text-zinc-900 selection:bg-zinc-800 selection:text-white'
+      }`}
+    >
       {/* Header Bar */}
       <Header
         onReset={handleResetSession}
         activeAccountsCount={totalAccountsCount}
+        isDarkMode={isDarkMode}
+        onToggleTheme={() => setIsDarkMode(!isDarkMode)}
       />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-8">
         
         <div className="mb-6">
-          <h1 className="text-5xl font-bold tracking-tight text-white">
+          <h1 className={`text-5xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
             Radix
           </h1>
-          <p className="text-zinc-400 font-medium text-base mt-2">
+          <p className={`font-medium text-base mt-2 ${isDarkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
             Where every key begins.
           </p>
         </div>
 
-        {/* Input Box & Beside Action Button */}
+        {/* Input Box & Action Button */}
         <KeyGenerator
           inputKey={inputKey}
           setInputKey={setInputKey}
           onGenerateOrImport={handleGenerateOrImport}
+          isDarkMode={isDarkMode}
         />
 
-        {/* Render Mnemonic Modal Popup (shows once upon generation/import) */}
+        {/* Render Mnemonic Modal Popup */}
         {showMnemonicModal && activeMnemonic && (
           <MnemonicCard
             mnemonic={activeMnemonic}
             onClose={() => setShowMnemonicModal(false)}
+            isDarkMode={isDarkMode}
           />
         )}
 
@@ -133,7 +141,11 @@ function App() {
           <div className="w-full max-w-5xl mx-auto space-y-4">
             
             {/* Chain Selector Header */}
-            <div className="flex items-center justify-between py-2 border-b border-zinc-800">
+            <div
+              className={`flex items-center justify-between py-2 border-b transition ${
+                isDarkMode ? 'border-zinc-800' : 'border-zinc-200'
+              }`}
+            >
               
               {/* Chain tabs */}
               <div className="flex items-center space-x-2">
@@ -141,8 +153,12 @@ function App() {
                   onClick={() => setSelectedChain('solana')}
                   className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                     selectedChain === 'solana'
-                      ? 'bg-zinc-100 text-black'
-                      : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                      ? isDarkMode
+                        ? 'bg-zinc-100 text-black'
+                        : 'bg-zinc-900 text-white'
+                      : isDarkMode
+                      ? 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                      : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60'
                   }`}
                 >
                   <Coins className="w-3.5 h-3.5" />
@@ -153,8 +169,12 @@ function App() {
                   onClick={() => setSelectedChain('ethereum')}
                   className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                     selectedChain === 'ethereum'
-                      ? 'bg-zinc-100 text-black'
-                      : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                      ? isDarkMode
+                        ? 'bg-zinc-100 text-black'
+                        : 'bg-zinc-900 text-white'
+                      : isDarkMode
+                      ? 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                      : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60'
                   }`}
                 >
                   <Layers className="w-3.5 h-3.5" />
@@ -165,7 +185,11 @@ function App() {
               {/* Add Account button */}
               <button
                 onClick={() => handleAddAccount(selectedChain)}
-                className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-200 text-xs font-semibold flex items-center space-x-1 transition"
+                className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center space-x-1 transition cursor-pointer ${
+                  isDarkMode
+                    ? 'bg-zinc-900 hover:bg-zinc-800 border-zinc-800 text-zinc-200'
+                    : 'bg-white hover:bg-zinc-100 border-zinc-300 text-zinc-800 shadow-sm'
+                }`}
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add {selectedChain === 'solana' ? 'Solana' : 'Ethereum'} Wallet</span>
@@ -181,12 +205,19 @@ function App() {
                     key={account.id}
                     account={account}
                     onDelete={handleDeleteAccount}
+                    isDarkMode={isDarkMode}
                   />
                 ))}
               </div>
             ) : (
-              <div className="p-8 text-center rounded-xl bg-[#0e0e10] border border-zinc-800">
-                <p className="text-xs text-zinc-400">No {selectedChain} wallets created.</p>
+              <div
+                className={`p-8 text-center rounded-xl border transition ${
+                  isDarkMode ? 'bg-[#0e0e10] border-zinc-800' : 'bg-white border-zinc-200 shadow-sm'
+                }`}
+              >
+                <p className={`text-xs ${isDarkMode ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                  No {selectedChain} wallets created.
+                </p>
               </div>
             )}
 
@@ -196,7 +227,7 @@ function App() {
       </main>
 
       {/* Sonner Toast Notifications */}
-      <Toaster position="top-right" theme="dark" richColors />
+      <Toaster position="top-right" theme={isDarkMode ? 'dark' : 'light'} richColors />
     </div>
   );
 }
