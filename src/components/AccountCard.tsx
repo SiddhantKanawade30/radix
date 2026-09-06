@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import type { WalletAccount } from '../types/wallet';
-import { Copy, Check, Trash2, Key, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { Copy, Check, Trash2, Key, EyeOff } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface AccountCardProps {
   account: WalletAccount;
   onDelete: (id: string) => void;
-  onReceiveClick: (account: WalletAccount) => void;
-  onSendClick: (account: WalletAccount) => void;
+  onReceiveClick?: (account: WalletAccount) => void;
+  onSendClick?: (account: WalletAccount) => void;
 }
 
 export const AccountCard: React.FC<AccountCardProps> = ({
   account,
   onDelete,
-  onReceiveClick,
-  onSendClick,
 }) => {
   const [copiedAddr, setCopiedAddr] = useState<boolean>(false);
   const [copiedKey, setCopiedKey] = useState<boolean>(false);
@@ -30,6 +29,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({
     try {
       await navigator.clipboard.writeText(account.publicKey);
       setCopiedAddr(true);
+      toast.success('Public address copied to clipboard');
       setTimeout(() => setCopiedAddr(false), 2000);
     } catch (err) {
       console.error('Copy failed:', err);
@@ -40,6 +40,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({
     try {
       await navigator.clipboard.writeText(account.privateKey);
       setCopiedKey(true);
+      toast.success('Secret key copied to clipboard');
       setTimeout(() => setCopiedKey(false), 2000);
     } catch (err) {
       console.error('Copy failed:', err);
@@ -73,38 +74,18 @@ export const AccountCard: React.FC<AccountCardProps> = ({
           </div>
         </div>
 
-        <div className="text-left sm:text-right">
-          <div className="text-lg font-bold font-mono text-white">
-            {account.balance.toFixed(4)} <span className="text-xs text-zinc-400">{account.currencySymbol}</span>
-          </div>
-        </div>
+
       </div>
 
       {/* Action Row */}
       <div className="flex items-center justify-between pt-3 border-t border-zinc-800/80 text-xs">
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => onReceiveClick(account)}
-            className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 font-medium transition flex items-center space-x-1"
-          >
-            <ArrowDownLeft className="w-3.5 h-3.5" />
-            <span>Receive</span>
-          </button>
-
-          <button
-            onClick={() => onSendClick(account)}
-            className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 font-medium transition flex items-center space-x-1"
-          >
-            <ArrowUpRight className="w-3.5 h-3.5" />
-            <span>Send</span>
-          </button>
-
-          <button
             onClick={() => setShowPrivateKey(!showPrivateKey)}
             className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800 font-medium transition flex items-center space-x-1"
           >
-            <Key className="w-3.5 h-3.5" />
-            <span>{showPrivateKey ? 'Hide Secret' : 'Secret Key'}</span>
+            {showPrivateKey ? <EyeOff className="w-3.5 h-3.5" /> : <Key className="w-3.5 h-3.5" />}
+            <span>{showPrivateKey ? 'Hide' : 'Secret Key'}</span>
           </button>
         </div>
 

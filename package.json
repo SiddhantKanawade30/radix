@@ -10,11 +10,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@solana/web3.js": "^1.98.4",
     "@tailwindcss/vite": "^4.3.3",
+    "bip39": "^3.1.0",
+    "bs58": "^6.0.0",
+    "buffer": "^6.0.3",
+    "ed25519-hd-key": "^2.0.0",
+    "ethers": "^6.17.0",
     "lucide-react": "^1.41.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "tailwindcss": "^4.3.3"
+    "sonner": "^2.0.8",
+    "tailwindcss": "^4.3.3",
+    "tweetnacl": "^1.0.3",
+    "vite-plugin-node-polyfills": "^0.28.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

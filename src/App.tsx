@@ -3,11 +3,11 @@ import { Header } from './components/Header';
 import { KeyGenerator } from './components/KeyGenerator';
 import { MnemonicCard } from './components/MnemonicCard';
 import { AccountCard } from './components/AccountCard';
-import { ReceiveModal } from './components/ReceiveModal';
-import { SendModal } from './components/SendModal';
+import { Toaster, toast } from 'sonner';
 import type { WalletAccount, ChainType } from './types/wallet';
 import {
   generateRandomMnemonic,
+  validateSeedPhrase,
   deriveSolanaAccount,
   deriveEthereumAccount,
 } from './utils/crypto';
@@ -19,28 +19,37 @@ function App() {
   const [selectedChain, setSelectedChain] = useState<ChainType>('solana');
   const [solanaAccounts, setSolanaAccounts] = useState<WalletAccount[]>([]);
   const [ethereumAccounts, setEthereumAccounts] = useState<WalletAccount[]>([]);
-
-  // Modal State
-  const [receiveAccount, setReceiveAccount] = useState<WalletAccount | null>(null);
-  const [sendAccount, setSendAccount] = useState<WalletAccount | null>(null);
+  const [showMnemonicModal, setShowMnemonicModal] = useState<boolean>(false);
 
   // Generate or Import UI action
   const handleGenerateOrImport = () => {
     const seedToUse = inputKey.trim();
     let finalSeed = seedToUse;
     
-    if (!finalSeed) {
+    if (finalSeed) {
+      if (!validateSeedPhrase(finalSeed)) {
+        toast.error('Invalid recovery phrase. Please check your 12-word phrase.');
+        return;
+      }
+    } else {
       finalSeed = generateRandomMnemonic();
       setInputKey(finalSeed);
     }
 
     setActiveMnemonic(finalSeed);
+    setShowMnemonicModal(true);
 
-    const sol0 = deriveSolanaAccount(finalSeed, 0);
-    const eth0 = deriveEthereumAccount(finalSeed, 0);
-
-    setSolanaAccounts([sol0]);
-    setEthereumAccounts([eth0]);
+    if (selectedChain === 'solana') {
+      const sol0 = deriveSolanaAccount(finalSeed, 0);
+      setSolanaAccounts([sol0]);
+      setEthereumAccounts([]);
+      toast.success('Account 1 generated for Solana');
+    } else {
+      const eth0 = deriveEthereumAccount(finalSeed, 0);
+      setEthereumAccounts([eth0]);
+      setSolanaAccounts([]);
+      toast.success('Account 1 generated for Ethereum');
+    }
   };
 
   // Add derived account under same seed
@@ -51,10 +60,12 @@ function App() {
       const nextIndex = solanaAccounts.length;
       const newAcc = deriveSolanaAccount(activeMnemonic, nextIndex);
       setSolanaAccounts((prev) => [...prev, newAcc]);
+      toast.success(`${newAcc.name} generated for Solana`);
     } else {
       const nextIndex = ethereumAccounts.length;
       const newAcc = deriveEthereumAccount(activeMnemonic, nextIndex);
       setEthereumAccounts((prev) => [...prev, newAcc]);
+      toast.success(`${newAcc.name} generated for Ethereum`);
     }
   };
 
@@ -62,29 +73,20 @@ function App() {
   const handleDeleteAccount = (id: string) => {
     setSolanaAccounts((prev) => prev.filter((acc) => acc.id !== id));
     setEthereumAccounts((prev) => prev.filter((acc) => acc.id !== id));
+    toast.info('Account deleted');
   };
 
   // Reset session
   const handleResetSession = () => {
     setInputKey('');
     setActiveMnemonic('');
+    setShowMnemonicModal(false);
     setSolanaAccounts([]);
     setEthereumAccounts([]);
+    toast('Session cleared');
   };
 
-  // Handle simulated token sending
-  const handleSendSuccess = (accountId: string, amount: number) => {
-    setSolanaAccounts((prev) =>
-      prev.map((acc) =>
-        acc.id === accountId ? { ...acc, balance: Math.max(0, acc.balance - amount) } : acc
-      )
-    );
-    setEthereumAccounts((prev) =>
-      prev.map((acc) =>
-        acc.id === accountId ? { ...acc, balance: Math.max(0, acc.balance - amount) } : acc
-      )
-    );
-  };
+
 
   const activeAccountsList =
     selectedChain === 'solana' ? solanaAccounts : ethereumAccounts;
@@ -100,10 +102,8 @@ function App() {
         activeAccountsCount={totalAccountsCount}
       />
 
-      {/* Main Content Container matching user screenshot */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-8">
         
-        {/* Title Block */}
         <div className="mb-6">
           <h1 className="text-5xl font-bold tracking-tight text-white">
             Radix
@@ -120,8 +120,13 @@ function App() {
           onGenerateOrImport={handleGenerateOrImport}
         />
 
-        {/* Render Mnemonic Box once active */}
-        {activeMnemonic && <MnemonicCard mnemonic={activeMnemonic} />}
+        {/* Render Mnemonic Modal Popup (shows once upon generation/import) */}
+        {showMnemonicModal && activeMnemonic && (
+          <MnemonicCard
+            mnemonic={activeMnemonic}
+            onClose={() => setShowMnemonicModal(false)}
+          />
+        )}
 
         {/* Wallet Accounts Section */}
         {activeMnemonic && (
@@ -176,8 +181,6 @@ function App() {
                     key={account.id}
                     account={account}
                     onDelete={handleDeleteAccount}
-                    onReceiveClick={(acc) => setReceiveAccount(acc)}
-                    onSendClick={(acc) => setSendAccount(acc)}
                   />
                 ))}
               </div>
@@ -192,18 +195,8 @@ function App() {
 
       </main>
 
-      {/* Interactive Modals */}
-      <ReceiveModal
-        account={receiveAccount}
-        onClose={() => setReceiveAccount(null)}
-      />
-
-      <SendModal
-        account={sendAccount}
-        onClose={() => setSendAccount(null)}
-        onSendSuccess={handleSendSuccess}
-      />
-
+      {/* Sonner Toast Notifications */}
+      <Toaster position="top-right" theme="dark" richColors />
     </div>
   );
 }
